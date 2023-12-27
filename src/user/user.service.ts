@@ -1,7 +1,11 @@
 import _ from 'lodash';
 import { Repository } from 'typeorm';
 import { compare, hash } from 'bcrypt';
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 
@@ -30,10 +34,32 @@ export class UserService {
       ...registerDto,
       password: hashedPassword,
     });
+
+    return {
+      message: 'Register success',
+    };
   }
 
   async login(loginDto: LoginDto) {
-    throw new Error('Method not implemented.');
+    const user = await this.userRepository.findOne({
+      select: ['id', 'email', 'password'],
+      where: { email: loginDto.email },
+    });
+
+    if (_.isNil(user)) {
+      throw new UnauthorizedException('Check your email.');
+    }
+
+    if (!(await compare(loginDto.password, user.password))) {
+      throw new UnauthorizedException('Check your password.');
+    }
+
+    const payload = { email: user.email, sub: user.id };
+
+    return {
+      message: 'Login success',
+      access_token: this.jwtService.sign(payload),
+    };
   }
 
   async findByEmail(email: string) {
