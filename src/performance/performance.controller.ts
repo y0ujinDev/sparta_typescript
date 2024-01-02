@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -59,6 +60,18 @@ export class PerformanceController {
 
     return {
       message: 'Performance retrieved successfully',
+      data: performance,
+    };
+  }
+
+  @UseGuards(RolesGuard)
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('/:id')
+  async deletePerformance(@Param('id') id: string) {
+    const performance = await this.performanceService.delete(+id);
+
+    return {
+      message: 'Performance deleted successfully',
       data: performance,
     };
   }

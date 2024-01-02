@@ -21,7 +21,6 @@ export class TicketService {
     private readonly ticketRepository: Repository<Ticket>,
     private readonly performanceSerivce: PerformanceService,
     private readonly userService: UserService,
-    private readonly jwtService: JwtService,
   ) {}
 
   async create(createTicketDto: CreateTicketDto) {

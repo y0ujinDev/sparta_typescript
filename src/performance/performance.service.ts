@@ -16,7 +16,6 @@ export class PerformanceService {
   constructor(
     @InjectRepository(Performance)
     private readonly performanceRepository: Repository<Performance>,
-    private readonly jwtService: JwtService,
   ) {}
 
   async create(createDto: CreatePerformanceDto) {
@@ -111,6 +110,15 @@ export class PerformanceService {
     }
 
     return performance;
+  }
+
+  async delete(performanceId: number) {
+    const performance = await this.findById(performanceId);
+
+    const removedPerformance =
+      await this.performanceRepository.remove(performance);
+
+    return removedPerformance;
   }
 
   async updateSeat(performanceId: number, grade: SeatRole, increase: boolean) {
