@@ -8,6 +8,11 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { User } from './user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { PerformanceModule } from './performance/performance.module';
+import { TicketModule } from './ticket/ticket.module';
+import { Ticket } from './ticket/entities/ticket.entity';
+import { Performance } from './performance/entities/performance.entity';
+import { JwtModule } from '@nestjs/jwt';
 
 const typeOrmModuleOptions = {
   useFactory: async (
@@ -20,7 +25,7 @@ const typeOrmModuleOptions = {
     host: configService.get('DB_HOST'),
     port: configService.get('DB_PORT'),
     database: configService.get('DB_NAME'),
-    entities: [User],
+    entities: [User, Performance, Ticket],
     synchronize: configService.get('DB_SYNC'),
     logging: true,
   }),
@@ -42,8 +47,16 @@ const typeOrmModuleOptions = {
       }),
     }),
     TypeOrmModule.forRootAsync(typeOrmModuleOptions),
+    JwtModule.registerAsync({
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_SECRET_KEY'),
+      }),
+      inject: [ConfigService],
+    }),
     AuthModule,
     UserModule,
+    PerformanceModule,
+    TicketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

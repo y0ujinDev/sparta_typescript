@@ -13,6 +13,7 @@ import { Repository } from 'typeorm';
 
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { Role } from 'src/user/types/userRole.type';
 
 @Injectable()
 export class AuthService {
@@ -31,9 +32,12 @@ export class AuthService {
 
     const hashedPassword = await hash(registerDto.password, 10);
 
+    const userRole = registerDto.role ? registerDto.role : Role.USER;
+
     await this.userRepository.save({
       ...registerDto,
       password: hashedPassword,
+      role: userRole,
     });
 
     return {
@@ -43,7 +47,7 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const user = await this.userRepository.findOne({
-      select: ['id', 'email', 'password'],
+      select: ['id', 'email', 'password', 'role'],
       where: { email: loginDto.email },
     });
 
@@ -55,7 +59,7 @@ export class AuthService {
       throw new UnauthorizedException('Check your password.');
     }
 
-    const payload = { email: user.email, sub: user.id };
+    const payload = { email: user.email, sub: user.id, role: user.role };
     const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
