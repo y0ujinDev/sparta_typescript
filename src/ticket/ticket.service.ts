@@ -28,11 +28,7 @@ export class TicketService {
     const { performanceId, userId, seatGrade, reservationTime, isCancelled } =
       createTicketDto;
 
-    const performance = await this.performanceSerivce.findById(performanceId);
-
-    if (!performance) {
-      throw new NotFoundException('Performance not found');
-    }
+    const performance = await this.findPerformanceById(performanceId);
 
     const date = new Date();
 
@@ -42,12 +38,19 @@ export class TicketService {
 
     await this.ensureSeatAvailability(performanceId, seatGrade);
 
-    await this.performanceSerivce.decreaseSeat(performanceId, seatGrade);
+    await this.performanceSerivce.updateSeat(performanceId, seatGrade, true);
 
     const price = await this.performanceSerivce.getPrice(
       performanceId,
       seatGrade,
     );
+
+    const user = await this.userService.findById(userId);
+
+    if (user.point < price) {
+      throw new BadRequestException('Not enough points');
+    }
+
     await this.userService.decreasePoint(userId, price);
 
     const newTicket = await this.ticketRepository.save({
@@ -87,11 +90,16 @@ export class TicketService {
       throw new NotFoundException('Ticket not found or not authorized');
     }
 
+    if (ticket.isCancelled) {
+      throw new BadRequestException('Ticket already cancelled');
+    }
+
     ticket.isCancelled = true;
 
-    await this.performanceSerivce.increaseSeat(
+    await this.performanceSerivce.updateSeat(
       ticket.performanceId,
       ticket.seatGrade,
+      false,
     );
 
     const cancelledTicket = await this.ticketRepository.save(ticket);
@@ -100,11 +108,7 @@ export class TicketService {
   }
 
   async ensureSeatAvailability(performanceId: number, seatGrade: SeatRole) {
-    const performance = await this.performanceSerivce.findById(performanceId);
-
-    if (!performance) {
-      throw new NotFoundException('Performance not found');
-    }
+    const performance = await this.findPerformanceById(performanceId);
 
     const existingTickets = await this.ticketRepository.count({
       where: {
@@ -132,5 +136,9 @@ export class TicketService {
       default:
         throw new BadRequestException('Invalid seat grade');
     }
+  }
+
+  async findPerformanceById(id: number) {
+    return await this.performanceSerivce.findById(id);
   }
 }

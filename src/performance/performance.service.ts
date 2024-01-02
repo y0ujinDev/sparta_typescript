@@ -95,11 +95,14 @@ export class PerformanceService {
   }
 
   async findone(id: number) {
-    const performance = await this.performanceRepository.findOneBy({ id });
+    const performance = await this.findById(id);
+
     if (!performance) {
       throw new NotFoundException('Performance not found');
     }
+
     const isBookable = performance.dateAndTime > new Date();
+
     return { ...performance, isBookable };
   }
 
@@ -107,48 +110,58 @@ export class PerformanceService {
     return await this.performanceRepository.findOneBy({ id });
   }
 
-  async decreaseSeat(performanceId: number, grade: SeatRole) {
-    const performance = await this.findById(performanceId);
-    switch (grade) {
-      case SeatRole.VIP:
-        performance.totalVipSeats--;
-        break;
-      case SeatRole.S:
-        performance.totalSSeats--;
-        break;
-      case SeatRole.R:
-        performance.totalRSeats--;
-        break;
-    }
+  // async decreaseSeat(performanceId: number, grade: SeatRole) {
+  //   const performance = await this.findById(performanceId);
+  //   switch (grade) {
+  //     case SeatRole.VIP:
+  //       performance.totalVipSeats--;
+  //       break;
+  //     case SeatRole.S:
+  //       performance.totalSSeats--;
+  //       break;
+  //     case SeatRole.R:
+  //       performance.totalRSeats--;
+  //       break;
+  //   }
+  //   await this.performanceRepository.save(performance);
+  // }
+
+  // async increaseSeat(performanceId: number, grade: SeatRole) {
+  //   const performance = await this.findById(performanceId);
+  //   switch (grade) {
+  //     case SeatRole.VIP:
+  //       performance.totalVipSeats++;
+  //       break;
+  //     case SeatRole.S:
+  //       performance.totalSSeats++;
+  //       break;
+  //     case SeatRole.R:
+  //       performance.totalRSeats++;
+  //       break;
+  //   }
+  //   await this.performanceRepository.save(performance);
+  // }
+
+  async updateSeat(performanceId: number, grade: SeatRole, increase: boolean) {
+    const performance = await this.findone(performanceId);
+    const seatSelector = {
+      [SeatRole.VIP]: 'totalVipSeats',
+      [SeatRole.S]: 'totalSSeats',
+      [SeatRole.R]: 'totalRSeats',
+    };
+
+    performance[seatSelector[grade]] += increase ? 1 : -1;
     await this.performanceRepository.save(performance);
   }
 
-  async increaseSeat(performanceId: number, grade: SeatRole) {
-    const performance = await this.findById(performanceId);
-    switch (grade) {
-      case SeatRole.VIP:
-        performance.totalVipSeats++;
-        break;
-      case SeatRole.S:
-        performance.totalSSeats++;
-        break;
-      case SeatRole.R:
-        performance.totalRSeats++;
-        break;
-    }
-    await this.performanceRepository.save(performance);
-  }
+  async getPrice(performanceId: number, grade: SeatRole) {
+    const performance = await this.findone(performanceId);
+    const priceSelector = {
+      [SeatRole.VIP]: 'vipPrice',
+      [SeatRole.S]: 'sSeatPrice',
+      [SeatRole.R]: 'rSeatPrice',
+    };
 
-  async getPrice(performnaceId: number, grade: SeatRole) {
-    const performance = await this.findById(performnaceId);
-
-    switch (grade) {
-      case SeatRole.VIP:
-        return performance.vipPrice;
-      case SeatRole.S:
-        return performance.sSeatPrice;
-      case SeatRole.R:
-        return performance.rSeatPrice;
-    }
+    return performance[priceSelector[grade]];
   }
 }
