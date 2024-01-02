@@ -3,8 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import _ from 'lodash';
 import { CreateTicketDto } from './dto/create-ticket.dto';
-import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Ticket } from './entities/ticket.entity';
 import { Repository } from 'typeorm';
@@ -86,7 +86,7 @@ export class TicketService {
       },
     });
 
-    if (!ticket) {
+    if (_.isNil(ticket)) {
       throw new NotFoundException('Ticket not found or not authorized');
     }
 

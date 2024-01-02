@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import _ from 'lodash';
 import { CreatePerformanceDto } from './dto/create-performance.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, ILike, In, LessThan, MoreThan, Repository } from 'typeorm';
@@ -97,50 +98,20 @@ export class PerformanceService {
   async findone(id: number) {
     const performance = await this.findById(id);
 
-    if (!performance) {
-      throw new NotFoundException('Performance not found');
-    }
-
     const isBookable = performance.dateAndTime > new Date();
 
     return { ...performance, isBookable };
   }
 
   async findById(id: number) {
-    return await this.performanceRepository.findOneBy({ id });
+    const performance = await this.performanceRepository.findOneBy({ id });
+
+    if (_.isNil(performance)) {
+      throw new NotFoundException('Performance not found');
+    }
+
+    return performance;
   }
-
-  // async decreaseSeat(performanceId: number, grade: SeatRole) {
-  //   const performance = await this.findById(performanceId);
-  //   switch (grade) {
-  //     case SeatRole.VIP:
-  //       performance.totalVipSeats--;
-  //       break;
-  //     case SeatRole.S:
-  //       performance.totalSSeats--;
-  //       break;
-  //     case SeatRole.R:
-  //       performance.totalRSeats--;
-  //       break;
-  //   }
-  //   await this.performanceRepository.save(performance);
-  // }
-
-  // async increaseSeat(performanceId: number, grade: SeatRole) {
-  //   const performance = await this.findById(performanceId);
-  //   switch (grade) {
-  //     case SeatRole.VIP:
-  //       performance.totalVipSeats++;
-  //       break;
-  //     case SeatRole.S:
-  //       performance.totalSSeats++;
-  //       break;
-  //     case SeatRole.R:
-  //       performance.totalRSeats++;
-  //       break;
-  //   }
-  //   await this.performanceRepository.save(performance);
-  // }
 
   async updateSeat(performanceId: number, grade: SeatRole, increase: boolean) {
     const performance = await this.findone(performanceId);
