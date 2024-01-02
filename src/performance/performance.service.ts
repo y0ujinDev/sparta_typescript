@@ -24,7 +24,9 @@ export class PerformanceService {
       description,
       location,
       dateAndTime,
-      price,
+      vipPrice,
+      sSeatPrice,
+      rSeatPrice,
       image,
       category,
     } = createDto;
@@ -43,7 +45,9 @@ export class PerformanceService {
       description,
       location,
       dateAndTime,
-      price,
+      vipPrice,
+      sSeatPrice,
+      rSeatPrice,
       image,
       category,
     });
@@ -133,5 +137,18 @@ export class PerformanceService {
         break;
     }
     await this.performanceRepository.save(performance);
+  }
+
+  async getPrice(performnaceId: number, grade: SeatRole) {
+    const performance = await this.findById(performnaceId);
+
+    switch (grade) {
+      case SeatRole.VIP:
+        return performance.vipPrice;
+      case SeatRole.S:
+        return performance.sSeatPrice;
+      case SeatRole.R:
+        return performance.rSeatPrice;
+    }
   }
 }

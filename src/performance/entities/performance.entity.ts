@@ -21,7 +21,13 @@ export class Performance {
   dateAndTime: Date;
 
   @Column({ type: 'int', nullable: false })
-  price: number;
+  vipPrice: number;
+
+  @Column({ type: 'int', nullable: false })
+  sSeatPrice: number;
+
+  @Column({ type: 'int', nullable: false })
+  rSeatPrice: number;
 
   @Column({ type: 'varchar', nullable: false })
   image: string;

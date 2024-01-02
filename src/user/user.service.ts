@@ -17,4 +17,10 @@ export class UserService {
   async findByEmail(email: string) {
     return await this.userRepository.findOneBy({ email });
   }
+
+  async decreasePoint(userId: number, point: number) {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    user.point -= point;
+    await this.userRepository.save(user);
+  }
 }

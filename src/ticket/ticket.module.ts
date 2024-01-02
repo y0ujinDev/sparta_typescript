@@ -6,6 +6,7 @@ import { Ticket } from './entities/ticket.entity';
 import { PerformanceModule } from 'src/performance/performance.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ConfigService } from '@nestjs/config';
     }),
     TypeOrmModule.forFeature([Ticket]),
     PerformanceModule,
+    UserModule,
   ],
   controllers: [TicketController],
   providers: [TicketService],

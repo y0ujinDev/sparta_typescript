@@ -18,8 +18,16 @@ export class CreatePerformanceDto {
   dateAndTime: Date[];
 
   @IsNumber()
-  @IsNotEmpty({ message: 'Price is required' })
-  price: number;
+  @IsNotEmpty({ message: 'VIP Price is required' })
+  vipPrice: number;
+
+  @IsNumber()
+  @IsNotEmpty({ message: 'S Price is required' })
+  rSeatPrice: number;
+
+  @IsNumber()
+  @IsNotEmpty({ message: 'R Price is required' })
+  sSeatPrice: number;
 
   @IsString()
   @IsNotEmpty({ message: 'Image is required' })

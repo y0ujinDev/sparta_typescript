@@ -11,6 +11,8 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { PerformanceService } from './../performance/performance.service';
 import { SeatRole } from './types/seatRole.types';
+import { UserService } from './../user/user.service';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class TicketService {
@@ -18,6 +20,7 @@ export class TicketService {
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
     private readonly performanceSerivce: PerformanceService,
+    private readonly userService: UserService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -41,30 +44,47 @@ export class TicketService {
 
     await this.performanceSerivce.decreaseSeat(performanceId, seatGrade);
 
-    await this.ticketRepository.save({
+    const price = await this.performanceSerivce.getPrice(
+      performanceId,
+      seatGrade,
+    );
+    await this.userService.decreasePoint(userId, price);
+
+    const newTicket = await this.ticketRepository.save({
       performanceId,
       userId,
       seatGrade,
       reservationTime,
       isCancelled,
     });
+
+    return newTicket;
   }
 
-  async findAll() {
-    return await this.ticketRepository.find({ where: { isCancelled: false } });
+  async findAll(user: User) {
+    return await this.ticketRepository.find({
+      where: {
+        userId: user.id,
+      },
+    });
   }
 
   async findById(id: number) {
     return await this.ticketRepository.findOne({
-      where: { id, isCancelled: false },
+      where: { id },
     });
   }
 
-  async cancel(id: number) {
-    const ticket = await this.findById(id);
+  async cancel(id: number, user: User) {
+    const ticket = await this.ticketRepository.findOne({
+      where: {
+        id: id,
+        userId: user.id,
+      },
+    });
 
     if (!ticket) {
-      throw new NotFoundException('Ticket not found');
+      throw new NotFoundException('Ticket not found or not authorized');
     }
 
     ticket.isCancelled = true;
@@ -74,7 +94,9 @@ export class TicketService {
       ticket.seatGrade,
     );
 
-    await this.ticketRepository.save(ticket);
+    const cancelledTicket = await this.ticketRepository.save(ticket);
+
+    return cancelledTicket;
   }
 
   async ensureSeatAvailability(performanceId: number, seatGrade: SeatRole) {
