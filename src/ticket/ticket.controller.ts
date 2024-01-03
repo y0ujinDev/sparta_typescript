@@ -19,7 +19,7 @@ export class TicketController {
   constructor(private readonly ticketService: TicketService) {}
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('/:id')
+  @Post('/')
   async create(
     @UserInfo() user: User,
     @Param('id') performanceId: string,

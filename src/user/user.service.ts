@@ -26,4 +26,10 @@ export class UserService {
     user.point -= point;
     await this.userRepository.save(user);
   }
+
+  async increasePoint(userId: number, point: number) {
+    const user = await this.userRepository.findOneBy({ id: userId });
+    user.point += point;
+    await this.userRepository.save(user);
+  }
 }

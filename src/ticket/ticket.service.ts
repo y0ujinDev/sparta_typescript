@@ -85,6 +85,14 @@ export class TicketService {
       },
     });
 
+    const performance = await this.performanceSerivce.findone(
+      ticket.performanceId,
+    );
+
+    if (performance.dateAndTime < new Date()) {
+      throw new BadRequestException('Performance is already over');
+    }
+
     if (_.isNil(ticket)) {
       throw new NotFoundException('Ticket not found or not authorized');
     }
@@ -100,6 +108,13 @@ export class TicketService {
       ticket.seatGrade,
       false,
     );
+
+    const price = await this.performanceSerivce.getPrice(
+      ticket.performanceId,
+      ticket.seatGrade,
+    );
+
+    await this.userService.increasePoint(user.id, price);
 
     const cancelledTicket = await this.ticketRepository.save(ticket);
 
