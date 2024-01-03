@@ -9,6 +9,7 @@
 - .env.sample을 참고하여 .env 파일 세팅.
 - npm install
 - npm run start
+- http://{ip}/{api} 로 접속
 
 ## 기능 설명
 
